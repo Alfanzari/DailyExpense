@@ -15,7 +15,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.syauqialfanzari0008.dailyexpense.data.model.Expense
 import com.syauqialfanzari0008.dailyexpense.ui.viewmodel.ExpenseViewModel
 import java.text.NumberFormat
-import java.util.*
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,7 +31,8 @@ fun RecycleBinScreen(
                 title = { Text("Recycle Bin") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+                        @Suppress("DEPRECATION")
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Kembali")
                     }
                 }
             )
@@ -67,29 +68,29 @@ fun RecycleBinScreen(
 }
 
 @Composable
-fun RecycleBinCard(
+private fun RecycleBinCard(
     expense: Expense,
     onRestore: () -> Unit,
     onHardDelete: () -> Unit
 ) {
-    val formatter = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    val formatter = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("id-ID"))
+    val showDeleteDialog = remember { mutableStateOf(false) }
 
-    if (showDeleteDialog) {
+    if (showDeleteDialog.value) {
         AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
+            onDismissRequest = { showDeleteDialog.value = false },
             title = { Text("Hapus Permanen") },
             text = { Text("Data ini akan dihapus permanen dan tidak bisa dikembalikan. Lanjutkan?") },
             confirmButton = {
                 TextButton(onClick = {
                     onHardDelete()
-                    showDeleteDialog = false
+                    showDeleteDialog.value = false
                 }) {
                     Text("Hapus")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
+                TextButton(onClick = { showDeleteDialog.value = false }) {
                     Text("Batal")
                 }
             }
@@ -110,7 +111,7 @@ fun RecycleBinCard(
                 OutlinedButton(onClick = onRestore) {
                     Text("Pulihkan")
                 }
-                Button(onClick = { showDeleteDialog = true }) {
+                Button(onClick = { showDeleteDialog.value = true }) {
                     Text("Hapus Permanen")
                 }
             }

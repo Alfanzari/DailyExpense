@@ -34,7 +34,8 @@ fun AddExpenseScreen(
                 title = { Text("Tambah Pengeluaran") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+                        @Suppress("DEPRECATION")
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Kembali")
                     }
                 }
             )
@@ -93,11 +94,15 @@ fun AddExpenseScreen(
 
             Button(
                 onClick = {
-                    titleError = title.isBlank()
-                    amountError = amount.isBlank() || amount.toDoubleOrNull() == null
-                    categoryError = category.isBlank()
+                    val isTitleValid = title.isNotBlank()
+                    val isAmountValid = amount.isNotBlank() && amount.toDoubleOrNull() != null
+                    val isCategoryValid = category.isNotBlank()
 
-                    if (!titleError && !amountError && !categoryError) {
+                    titleError = !isTitleValid
+                    amountError = !isAmountValid
+                    categoryError = !isCategoryValid
+
+                    if (isTitleValid && isAmountValid && isCategoryValid) {
                         viewModel.addExpense(
                             Expense(
                                 title = title.trim(),

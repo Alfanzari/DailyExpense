@@ -11,10 +11,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.syauqialfanzari0008.dailyexpense.data.model.Expense
 import com.syauqialfanzari0008.dailyexpense.ui.viewmodel.ExpenseViewModel
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -26,33 +28,20 @@ fun DetailExpenseScreen(
 ) {
     val expenses by viewModel.expenses.collectAsState()
     val expense = expenses.find { it.id == expenseId }
+    val showDeleteDialog = remember { mutableStateOf(false) }
 
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    val formatter = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("id-ID"))
+    val dateFormatter = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.forLanguageTag("id-ID"))
 
-    val formatter = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
-    val dateFormatter = SimpleDateFormat("dd MMM yyyy, HH:mm", Locale("id", "ID"))
-
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Hapus Pengeluaran") },
-            text = { Text("Yakin ingin menghapus pengeluaran ini?") },
-            confirmButton = {
-                TextButton(onClick = {
-                    expense?.let { viewModel.deleteExpense(it.id) }
-                    showDeleteDialog = false
-                    onBack()
-                }) {
-                    Text("Hapus")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Batal")
-                }
-            }
-        )
-    }
+    DeleteConfirmationDialog(
+        show = showDeleteDialog.value,
+        onConfirm = {
+            expense?.let { viewModel.deleteExpense(it.id) }
+            showDeleteDialog.value = false
+            onBack()
+        },
+        onDismiss = { showDeleteDialog.value = false }
+    )
 
     Scaffold(
         topBar = {
@@ -60,14 +49,15 @@ fun DetailExpenseScreen(
                 title = { Text("Detail Pengeluaran") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+                        @Suppress("DEPRECATION")
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Kembali")
                     }
                 },
                 actions = {
                     IconButton(onClick = { expense?.let { onEditClick(it.id) } }) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit")
                     }
-                    IconButton(onClick = { showDeleteDialog = true }) {
+                    IconButton(onClick = { showDeleteDialog.value = true }) {
                         Icon(Icons.Default.Delete, contentDescription = "Hapus")
                     }
                 }
@@ -75,46 +65,82 @@ fun DetailExpenseScreen(
         }
     ) { innerPadding ->
         expense?.let {
+            DetailContent(
+                expense = it,
+                innerPadding = innerPadding,
+                formatter = formatter,
+                dateFormatter = dateFormatter
+            )
+        }
+    }
+}
+
+@Composable
+private fun DeleteConfirmationDialog(
+    show: Boolean,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    if (show) {
+        AlertDialog(
+            onDismissRequest = onDismiss,
+            title = { Text("Hapus Pengeluaran") },
+            text = { Text("Yakin ingin menghapus pengeluaran ini?") },
+            confirmButton = {
+                TextButton(onClick = onConfirm) { Text("Hapus") }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) { Text("Batal") }
+            }
+        )
+    }
+}
+
+@Composable
+private fun DetailContent(
+    expense: Expense,
+    innerPadding: PaddingValues,
+    formatter: NumberFormat,
+    dateFormatter: SimpleDateFormat
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(innerPadding)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Card(modifier = Modifier.fillMaxWidth()) {
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text("Judul", style = MaterialTheme.typography.labelMedium)
-                        Text(it.title, fontWeight = FontWeight.Bold)
+                Text("Judul", style = MaterialTheme.typography.labelMedium)
+                Text(expense.title, fontWeight = FontWeight.Bold)
 
-                        HorizontalDivider()
+                HorizontalDivider()
 
-                        Text("Nominal", style = MaterialTheme.typography.labelMedium)
-                        Text(
-                            formatter.format(it.amount),
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+                Text("Nominal", style = MaterialTheme.typography.labelMedium)
+                Text(
+                    formatter.format(expense.amount),
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
 
-                        HorizontalDivider()
+                HorizontalDivider()
 
-                        Text("Kategori", style = MaterialTheme.typography.labelMedium)
-                        Text(it.category)
+                Text("Kategori", style = MaterialTheme.typography.labelMedium)
+                Text(expense.category)
 
-                        HorizontalDivider()
+                HorizontalDivider()
 
-                        Text("Tanggal", style = MaterialTheme.typography.labelMedium)
-                        Text(dateFormatter.format(Date(it.date)))
+                Text("Tanggal", style = MaterialTheme.typography.labelMedium)
+                Text(dateFormatter.format(Date(expense.date)))
 
-                        if (it.note.isNotBlank()) {
-                            HorizontalDivider()
-                            Text("Catatan", style = MaterialTheme.typography.labelMedium)
-                            Text(it.note)
-                        }
-                    }
+                if (expense.note.isNotBlank()) {
+                    HorizontalDivider()
+                    Text("Catatan", style = MaterialTheme.typography.labelMedium)
+                    Text(expense.note)
                 }
             }
         }

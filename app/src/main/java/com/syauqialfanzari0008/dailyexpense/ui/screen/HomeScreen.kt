@@ -21,7 +21,8 @@ import com.syauqialfanzari0008.dailyexpense.data.model.Expense
 import com.syauqialfanzari0008.dailyexpense.ui.viewmodel.ExpenseViewModel
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -97,8 +98,8 @@ fun HomeScreen(
 
 @Composable
 fun ExpenseListCard(expense: Expense, onClick: () -> Unit) {
-    val formatter = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
-    val dateFormatter = SimpleDateFormat("dd MMM yyyy", Locale("id", "ID"))
+    val formatter = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("id-ID"))
+    val dateFormatter = SimpleDateFormat("dd MMM yyyy", Locale.forLanguageTag("id-ID"))
 
     Card(
         modifier = Modifier
@@ -128,7 +129,7 @@ fun ExpenseListCard(expense: Expense, onClick: () -> Unit) {
 
 @Composable
 fun ExpenseGridCard(expense: Expense, onClick: () -> Unit) {
-    val formatter = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
+    val formatter = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("id-ID"))
 
     Card(
         modifier = Modifier

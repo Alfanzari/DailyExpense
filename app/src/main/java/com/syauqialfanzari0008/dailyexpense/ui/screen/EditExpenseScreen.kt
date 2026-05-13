@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.syauqialfanzari0008.dailyexpense.data.model.Expense
 import com.syauqialfanzari0008.dailyexpense.ui.viewmodel.ExpenseViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,7 +46,8 @@ fun EditExpenseScreen(
                 title = { Text("Edit Pengeluaran") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Kembali")
+                        @Suppress("DEPRECATION")
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Kembali")
                     }
                 }
             )
@@ -106,11 +106,15 @@ fun EditExpenseScreen(
 
             Button(
                 onClick = {
-                    titleError = title.isBlank()
-                    amountError = amount.isBlank() || amount.toDoubleOrNull() == null
-                    categoryError = category.isBlank()
+                    val isTitleValid = title.isNotBlank()
+                    val isAmountValid = amount.isNotBlank() && amount.toDoubleOrNull() != null
+                    val isCategoryValid = category.isNotBlank()
 
-                    if (!titleError && !amountError && !categoryError) {
+                    titleError = !isTitleValid
+                    amountError = !isAmountValid
+                    categoryError = !isCategoryValid
+
+                    if (isTitleValid && isAmountValid && isCategoryValid) {
                         expense?.let {
                             viewModel.updateExpense(
                                 it.copy(
